@@ -5,7 +5,7 @@ import numpy as np
 from ffpyplayer.player import MediaPlayer   # pip install ffpyplayer
 
 # ===== 設定 =====
-VIDEO = 'tesutonoyatu'
+VIDEO = 'tesuto.mp4'
 PORT = 'COM3'
 BAUD = 921600               # ESP32側のSerial.beginと必ず同じにする
 LOOP = True                 # True: ループ再生 / False: 1回再生して終了
@@ -16,7 +16,7 @@ PRIORITIZE_LARGE = False    # True: 点が多いとき大きな輪郭を優先�
 DEBUG = True                # 30フレームごとに点数を表示する
 # =================
 
-SCALE = 250 / (RES - 1)     
+SCALE = 250 / (RES - 1)     # 座標を0〜250に収める（0xFFは終端マーカー用）
 CENTER = bytes([125, 125, 0xFF])
 
 ser = serial.Serial(PORT, BAUD)
@@ -37,9 +37,10 @@ def frame_to_packet(img):
     pts = []
     for c in contours:
         p = c[:, 0, :]
+        # 画面の端にある点だけを除外する（輪郭ごと捨てない）
         keep = (p[:, 0] > 0) & (p[:, 0] < RES - 1) & (p[:, 1] > 0) & (p[:, 1] < RES - 1)
         p = p[keep]
-        if len(p) < 3:                      
+        if len(p) < 3:                      # 小さなゴミは除外
             continue
         pts.append(p)
 
@@ -72,18 +73,18 @@ def frame_to_packet(img):
             print(f"raw {total} -> sent {len(allp)} points")
 
     xs = np.minimum(250, (allp[:, 0] * SCALE).astype(int))
-    ys = np.minimum(250, ((RES - 1 - allp[:, 1]) * SCALE).astype(int))  
+    ys = np.minimum(250, ((RES - 1 - allp[:, 1]) * SCALE).astype(int))  # 上下反転
 
     arr = np.empty(len(allp) * 2, dtype=np.uint8)
     arr[0::2] = xs
     arr[1::2] = ys
-    return arr.tobytes() + b'\xff'          
+    return arr.tobytes() + b'\xff'          # 0xFFでフレーム終端
 
 
 def open_player():
-    opts = {'sync': 'audio'}                
+    opts = {'sync': 'audio'}                # 音声を基準に映像の時刻を合わせる
     if not AUDIO:
-        opts['an'] = True                   
+        opts['an'] = True                   # 音声を無効化
         opts['sync'] = 'video'
     return MediaPlayer(VIDEO, ff_opts=opts)
 
@@ -98,7 +99,7 @@ def next_frame(player):
         if frame is None:
             return latest
         latest = (frame[0], val)
-        if val > 0:                         
+        if val > 0:                         # まだ表示時刻前ならこれを使う
             return latest
 
 
@@ -127,5 +128,5 @@ try:
             time.sleep(remain)
         ser.write(pkt)
 finally:
-    ser.write(CENTER)                       
+    ser.write(CENTER)                       # 終了時は中央に点を出して止める
     player.close_player()
