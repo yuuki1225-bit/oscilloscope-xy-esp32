@@ -5,6 +5,9 @@
 
 <img width="1969" height="1108" alt="20261011_171955" src="https://github.com/user-attachments/assets/727520e0-ab58-4adf-bd94-0694a97b28b8" />
 
+<img width="2274" height="1280" alt="20261011_181339" src="https://github.com/user-attachments/assets/7285bdf1-ef20-46de-93fc-fc34570173f0" />
+
+
 ## ⚠️ 既知の問題（協力者募集）
 
 **動きが激しいシーン（フランが出てくる場面など）で表示が崩れます。** 解像度、点数、通信速度を変えても直りませんでした。原因に心当たりのある方、修正案をIssueやPull Requestで教えてください！
