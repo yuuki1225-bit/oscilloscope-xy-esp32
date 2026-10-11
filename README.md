@@ -1,4 +1,5 @@
 # オシロスコープXY表示 (ESP32 + Python)
+[English version](README.en.md)
 
 動画の輪郭を抽出して、ESP32のDAC出力からオシロスコープのXYモードに描画するプロジェクトです。Bad Apple!! などの白黒動画を、音と一緒に表示できます。
 
